@@ -1,4 +1,5 @@
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 const Header = () => {
   return (
@@ -11,29 +12,38 @@ const Header = () => {
         </div>
 
         <nav className="hidden md:flex items-center gap-8">
-          <a 
-            href="#generator" 
+          <a
+            href="#generator"
             className="font-body text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             Generator
           </a>
-          <a 
-            href="#how-it-works" 
+          <a
+            href="#how-it-works"
             className="font-body text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             How it Works
           </a>
-          <a 
-            href="#models" 
+          <a
+            href="#models"
             className="font-body text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             Models
           </a>
         </nav>
 
-        <LiquidButton size="sm" className="hidden sm:flex">
-          Get Started
-        </LiquidButton>
+        <div className="flex items-center gap-4">
+          <SignedOut>
+            <SignInButton mode="modal">
+              <LiquidButton size="sm" className="hidden sm:flex">
+                Get Started
+              </LiquidButton>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
       </div>
     </header>
   );
