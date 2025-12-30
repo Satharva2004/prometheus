@@ -4,3 +4,4 @@ pinecone
 python-dotenv
 sentence-transformers
 keybert
+groq
