@@ -1,102 +1,34 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Sparkles, RefreshCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { AnimatePresence, motion } from "framer-motion";
 
-const samplePrompts = {
-  chatgpt: `# AI Customer Support Agent for FinTech App
-
-## Role Definition
-You are an AI-powered customer support specialist for a fintech application. Your primary function is to assist users with account inquiries, transaction issues, and general platform navigation while maintaining strict compliance with financial regulations.
-
-## Core Responsibilities
-1. **Account Management**: Help users with account access, password resets, and profile updates
-2. **Transaction Support**: Assist with payment inquiries, transfer status, and dispute resolution
-3. **Compliance Awareness**: Ensure all responses adhere to KYC/AML regulations
-4. **Escalation Protocol**: Identify complex issues requiring human intervention
-
-## Communication Guidelines
-- Maintain a professional yet friendly tone
-- Never request or store sensitive information (SSN, full card numbers)
-- Always verify user identity before discussing account specifics
-- Provide clear, step-by-step instructions when guiding users
-
-## Response Format
-Structure responses with:
-- Acknowledgment of the user's concern
-- Clear explanation or solution
-- Next steps or follow-up actions
-- Relevant compliance disclaimers when applicable`,
-
-  gemini: `<system_instructions>
-You are a customer support AI agent integrated into a financial technology platform. Your operational parameters are defined below.
-
-<agent_identity>
-- Name: FinAssist AI
-- Domain: Financial Services Support
-- Compliance Level: High (Financial Regulations Apply)
-</agent_identity>
-
-<capabilities>
-- Account inquiry handling
-- Transaction status verification
-- Payment dispute initiation
-- General navigation assistance
-- Security alert explanations
-</capabilities>
-
-<constraints>
-- DO NOT request full social security numbers
-- DO NOT store credit card information in conversation
-- ALWAYS redirect fraud concerns to human agents
-- MUST include regulatory disclaimers for investment-related queries
-</constraints>
-
-<interaction_protocol>
-1. Greet user and verify identity through approved methods
-2. Categorize inquiry type
-3. Provide relevant assistance within compliance boundaries
-4. Offer escalation path when necessary
-5. Conclude with satisfaction check and case reference
-</interaction_protocol>
-</system_instructions>`,
-
-  claude: `You are FinAssist, a specialized customer support agent for a financial technology application. Your purpose is to provide helpful, accurate, and compliant assistance to users.
-
-## Your Character
-You are knowledgeable, patient, and precise. You understand that financial matters require careful attention to detail and clear communication. You prioritize user security and regulatory compliance in every interaction.
-
-## What You Can Help With
-- Account access and authentication issues
-- Understanding transaction history and statements
-- Explaining fees and charges
-- Guiding users through platform features
-- Initiating dispute processes
-- Providing general financial product information
-
-## Important Boundaries
-You must never:
-• Ask for complete sensitive information (full SSN, complete card numbers)
-• Provide specific investment advice
-• Make promises about dispute outcomes
-• Access systems beyond your authorized scope
-
-When you encounter situations outside your capabilities, smoothly transition to human support: "I want to make sure you get the best assistance for this. Let me connect you with a specialist who can help further."
-
-## Response Approach
-Begin by acknowledging the user's situation with empathy. Provide clear, structured responses that anticipate follow-up questions. End with a confirmation that their concern has been addressed or clear next steps.`
-};
+interface Question {
+  id: number;
+  question: string;
+  options: string[];
+}
 
 const PromptGenerator = () => {
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
-  const [copiedTab, setCopiedTab] = useState<string | null>(null);
+  const [step, setStep] = useState<"initial" | "clarifying" | "final">("initial");
+
+  // Q&A State
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [currentQIndex, setCurrentQIndex] = useState(0);
+
+  // Result State
+  const [finalPrompt, setFinalPrompt] = useState("");
+  const [retrievedSources, setRetrievedSources] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
+
   const { toast } = useToast();
 
-  const handleGenerate = () => {
+  const handleAnalyze = async () => {
     if (!input.trim()) {
       toast({
         title: "Please describe your AI agent",
@@ -108,111 +40,300 @@ const PromptGenerator = () => {
 
     setIsGenerating(true);
 
-    // Simulate generation
-    setTimeout(() => {
-      setIsGenerating(false);
-      setHasGenerated(true);
-      toast({
-        title: "Prompts generated",
-        description: "Your optimized prompts are ready.",
+    try {
+      const response = await fetch("http://localhost:8000/api/ai/analyze-query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: input }),
       });
-    }, 1500);
+
+      if (!response.ok) throw new Error("Failed to analyze query");
+
+      const data = await response.json();
+      if (data.questions && Array.isArray(data.questions)) {
+        setQuestions(data.questions);
+        setAnswers({});
+        setCurrentQIndex(0);
+        setStep("clarifying");
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to generate questions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleCopy = (text: string, tab: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedTab(tab);
+  const handleOptionSelect = (qId: number, option: string) => {
+    setAnswers(prev => ({ ...prev, [qId]: option }));
+
+    // Auto advance after a brief delay for animation
+    setTimeout(() => {
+      if (currentQIndex < questions.length - 1) {
+        setCurrentQIndex(prev => prev + 1);
+      } else {
+        // All questions answered, generate final prompt
+        handleGenerateFinal({ ...answers, [qId]: option });
+      }
+    }, 400); // 400ms delay to allow "snap" animation to start/feel satisfying
+  };
+
+  const handleGenerateFinal = async (finalAnswers: Record<number, string>) => {
+    setIsGenerating(true);
+    setStep("final"); // Move to final step immediately to show loading state there or keeping clarifying with loading spinner? 
+    // Actually, let's keep it in "clarifying" but show a global loader or just transition state. 
+    // For cleaner UX, let's show a "Creating..." state or just move to FinalStep with isGenerating=true
+
+    try {
+      const formattedAnswers = Object.entries(finalAnswers).map(([id, answer]) => ({
+        id: parseInt(id),
+        answer,
+      }));
+
+      const response = await fetch("http://localhost:8000/api/ai/generate-final-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: input,
+          answers: formattedAnswers,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate final prompt");
+
+      const data = await response.json();
+      setFinalPrompt(data.final_prompt);
+      setRetrievedSources(data.retrieved_sources || []);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to generate the final prompt.",
+        variant: "destructive",
+      });
+      setStep("clarifying"); // Go back on error
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(finalPrompt);
+    setCopied(true);
     toast({
       title: "Copied to clipboard",
       description: "The prompt is ready to use.",
     });
-    setTimeout(() => setCopiedTab(null), 2000);
+    setTimeout(() => setCopied(false), 2000);
   };
 
+  const resetProcess = () => {
+    setInput("");
+    setQuestions([]);
+    setAnswers({});
+    setCurrentQIndex(0);
+    setFinalPrompt("");
+    setRetrievedSources([]);
+    setStep("initial");
+  };
+
+  const currentQuestion = questions[currentQIndex];
+
   return (
-    <section id="generator" className="py-24">
+    <section id="generator" className="py-24 min-h-screen">
       <div className="container mx-auto px-6">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Section header */}
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
-              Describe Your AI Agent
+              {step === "initial" && "Describe Your AI Agent"}
+              {step === "clarifying" && "Refine Your Vision"}
+              {step === "final" && "Your Optimized Prompt"}
             </h2>
             <p className="font-body text-muted-foreground text-lg">
-              Tell us what you want to build, and we'll craft the prompts.
+              {step === "initial" && "Tell us what you want to build, and we'll craft the prompts."}
+              {step === "clarifying" && "Help us understand the specifics with a few quick choices."}
+              {step === "final" && "Ready to deploy. Use this prompt in your favorite LLM."}
             </p>
           </div>
 
-          {/* Matte input card */}
-          <div className="bg-card rounded-2xl shadow-card border border-border/50 p-6 md:p-8 mb-8">
-            <Textarea
-              placeholder="Describe the AI agent, workflow, or system you want to build…"
-              className="min-h-[140px] font-body text-base resize-none border-0 bg-secondary/40 focus-visible:ring-1 focus-visible:ring-border mb-4 placeholder:text-muted-foreground/50"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-
-            <p className="font-body text-sm text-muted-foreground/60 mb-6 italic">
-              e.g. 'An internal HR AI agent that answers policy questions and follows compliance rules'
-            </p>
-
-            <div className="flex items-center justify-end">
-              <LiquidButton
-                size="lg"
-                onClick={handleGenerate}
-                disabled={isGenerating}
+          <AnimatePresence mode="wait">
+            {/* STEP 1: INITIAL INPUT */}
+            {step === "initial" && (
+              <motion.div
+                key="step-initial"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+                transition={{ duration: 0.4 }}
+                className="bg-card rounded-2xl shadow-card border border-border/50 p-6 md:p-8"
               >
-                {isGenerating ? "Generating..." : "Generate Prompt"}
-              </LiquidButton>
-            </div>
-          </div>
+                <Textarea
+                  placeholder="Describe the AI agent, workflow, or system you want to build…"
+                  className="min-h-[140px] font-body text-base resize-none border-0 bg-secondary/40 focus-visible:ring-1 focus-visible:ring-border mb-4 placeholder:text-muted-foreground/50"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                />
 
-          {/* Output section - Editorial code block style */}
-          {hasGenerated && (
-            <div className="bg-card rounded-2xl shadow-card border border-border/50 overflow-hidden animate-fade-in-up">
-              <Tabs defaultValue="chatgpt" className="w-full">
-                <div className="border-b border-border/50 px-6 pt-4">
-                  <TabsList className="bg-transparent gap-1">
-                    {["chatgpt", "gemini", "claude"].map((tab) => (
-                      <TabsTrigger
-                        key={tab}
-                        value={tab}
-                        className="font-body text-sm capitalize data-[state=active]:bg-secondary/60 data-[state=active]:shadow-none rounded-lg px-4"
-                      >
-                        {tab === "chatgpt" ? "ChatGPT" : tab.charAt(0).toUpperCase() + tab.slice(1)} Prompt
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
+                <p className="font-body text-sm text-muted-foreground/60 mb-6 italic">
+                  e.g. 'An internal HR AI agent that answers policy questions and follows compliance rules'
+                </p>
+
+                <div className="flex items-center justify-end">
+                  <LiquidButton
+                    size="lg"
+                    onClick={handleAnalyze}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Sparkles className="w-4 h-4 animate-spin mr-2" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      "Analyze & Refine"
+                    )}
+                  </LiquidButton>
+                </div>
+              </motion.div>
+            )}
+
+            {/* STEP 2: CLARIFYING QUESTIONS (SEQUENTIAL) */}
+            {step === "clarifying" && currentQuestion && (
+              <motion.div
+                key={`q-${currentQuestion.id}`} // Unique key for each question triggers AnimatePresence
+                initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                exit={{
+                  opacity: 0,
+                  scale: 1.1,
+                  filter: "blur(20px)",
+                  transition: { duration: 0.4, ease: "easeInOut" }
+                }} // "Thanos snap" feel: fades out, blurs heavily, slightly expands like dust
+                className="bg-card rounded-xl border border-border/40 p-8 shadow-sm max-w-2xl mx-auto"
+              >
+                <div className="mb-6">
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                    Question {currentQIndex + 1} of {questions.length}
+                  </span>
+                  <h3 className="font-display text-2xl text-foreground mt-2">
+                    {currentQuestion.question}
+                  </h3>
                 </div>
 
-                {Object.entries(samplePrompts).map(([key, prompt]) => (
-                  <TabsContent key={key} value={key} className="m-0">
-                    <div className="relative">
-                      <button
-                        className="absolute top-4 right-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/50 font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200"
-                        onClick={() => handleCopy(prompt, key)}
-                      >
-                        {copiedTab === key ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            Copy Prompt
-                          </>
-                        )}
-                      </button>
-                      <pre className="p-6 pt-14 overflow-x-auto font-body text-sm text-foreground/85 bg-secondary/20 max-h-[450px] overflow-y-auto leading-relaxed whitespace-pre-wrap">
-                        {prompt}
-                      </pre>
+                <div className="grid grid-cols-1 gap-3">
+                  {currentQuestion.options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => handleOptionSelect(currentQuestion.id, option)}
+                      className="px-5 py-4 rounded-xl text-base font-body text-left transition-all duration-300 border bg-secondary/30 border-transparent text-foreground hover:bg-primary/5 hover:border-primary/30 hover:shadow-lg active:scale-[0.98]"
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mt-8 h-1 w-full bg-secondary rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-primary"
+                    initial={{ width: `${(currentQIndex / questions.length) * 100}%` }}
+                    animate={{ width: `${((currentQIndex + 1) / questions.length) * 100}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Loading State between Clarifying and Final (if needed) */}
+            {step === "final" && isGenerating && (
+              <motion.div
+                key="generating-loader"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-20"
+              >
+                <Sparkles className="w-12 h-12 text-primary animate-spin mb-4" />
+                <h3 className="text-xl font-display">Crafting your perfect prompt...</h3>
+              </motion.div>
+            )}
+
+            {/* STEP 3: FINAL OUTPUT (EDITABLE) */}
+            {step === "final" && !isGenerating && (
+              <motion.div
+                key="step-final"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", bounce: 0.3 }}
+                className="bg-card rounded-2xl shadow-card border border-border/50 overflow-hidden"
+              >
+                <div className="border-b border-border/50 px-6 py-4 flex items-center justify-between bg-secondary/10">
+                  <div className="flex items-center gap-2">
+                    <span className="font-display text-sm font-medium text-foreground">System Prompt</span>
+                    <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold tracking-wider uppercase border border-green-500/20">
+                      Optimized
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={resetProcess}
+                      className="p-2 hover:bg-secondary/50 rounded-md transition-colors text-muted-foreground hover:text-foreground"
+                      title="Start Over"
+                    >
+                      <RefreshCcw className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleCopy}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/50 font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <Textarea
+                    value={finalPrompt}
+                    onChange={(e) => setFinalPrompt(e.target.value)}
+                    className="min-h-[500px] w-full p-6 font-mono text-sm leading-relaxed bg-transparent border-0 focus-visible:ring-0 resize-y"
+                    spellCheck={false}
+                  />
+                </div>
+
+                {retrievedSources.length > 0 && (
+                  <div className="bg-secondary/5 border-t border-border/30 p-4">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                      Inspired by Knowledge Base
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {retrievedSources.map((source, idx) => (
+                        <span key={idx} className="px-2 py-1 rounded bg-secondary/40 text-[10px] text-muted-foreground border border-border/20">
+                          {source}
+                        </span>
+                      ))}
                     </div>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </div>
-          )}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </section>
