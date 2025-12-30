@@ -16,6 +16,7 @@ const aiModels = [
   { name: "Grok", logo: "/grok-(xai).svg" },
   { name: "Jules", logo: "/jules.svg" },
   { name: "LangChain", logo: "/langchain.svg" },
+  { name: "Lovable", logo: "/lovable.svg" },
   { name: "Mistral", logo: "/mistral-ai.svg" },
   { name: "Perplexity", logo: "/perplexity.svg" },
   { name: "Replit", logo: "/replit.svg" },
