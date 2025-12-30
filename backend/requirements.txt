@@ -1,2 +1,6 @@
 fastapi
 uvicorn
+pinecone
+python-dotenv
+sentence-transformers
+keybert
