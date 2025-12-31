@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Copy, Check, Sparkles, RefreshCcw } from "lucide-react";
+import { Copy, Check, RefreshCcw, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { AnimatePresence, motion } from "framer-motion";
+import { useUser, SignInButton } from "@clerk/clerk-react"; // Start Clerk imports
 
 interface Question {
   id: number;
@@ -11,7 +12,59 @@ interface Question {
   options: string[];
 }
 
+// -----------------------------------------------------
+// Breathing Orb Component
+// -----------------------------------------------------
+const BreathingOrb = ({ size = "lg" }: { size?: "sm" | "lg" }) => {
+  const isSmall = size === "sm";
+
+  // Dimensions - scaled up for lg
+  const containerSize = isSmall ? "w-5 h-5" : "w-64 h-64";
+  const coreBlur = isSmall ? "blur-sm" : "blur-3xl";
+  const innerBlur = isSmall ? "blur-[2px]" : "blur-xl";
+
+  return (
+    <div className={`relative flex items-center justify-center ${containerSize}`}>
+      {/* Core Gradient Orb */}
+      <motion.div
+        className={`absolute w-full h-full rounded-full ${coreBlur}`}
+        style={{
+          background: "radial-gradient(circle, hsla(25, 95%, 40%, 0.95) 0%, hsla(30, 80%, 50%, 0.1) 60%, transparent 80%)",
+        }}
+        animate={{
+          scale: [1, 1.25, 1],
+          opacity: [0.6, 0.9, 0.6],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Inner Glow */}
+      <motion.div
+        className={`absolute w-2/3 h-2/3 rounded-full ${innerBlur}`}
+        style={{
+          background: "radial-gradient(circle, hsla(40, 100%, 80%, 0.9) 0%, transparent 70%)",
+        }}
+        animate={{
+          scale: [0.9, 1.1, 0.9],
+          opacity: [0.7, 1, 0.7],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 0.1
+        }}
+      />
+    </div>
+  );
+};
+
 const PromptGenerator = () => {
+  const { isSignedIn } = useUser();
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [step, setStep] = useState<"initial" | "clarifying" | "final">("initial");
@@ -26,7 +79,18 @@ const PromptGenerator = () => {
   const [retrievedSources, setRetrievedSources] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
+  // Usage Limit State
+  const [hasUsedFreeToken, setHasUsedFreeToken] = useState(false);
+
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Check if user has already used their free generation
+    const used = localStorage.getItem("prompt_genie_free_usage");
+    if (used) {
+      setHasUsedFreeToken(true);
+    }
+  }, []);
 
   const handleAnalyze = async () => {
     if (!input.trim()) {
@@ -81,14 +145,12 @@ const PromptGenerator = () => {
         // All questions answered, generate final prompt
         handleGenerateFinal({ ...answers, [qId]: option });
       }
-    }, 400); // 400ms delay to allow "snap" animation to start/feel satisfying
+    }, 400);
   };
 
   const handleGenerateFinal = async (finalAnswers: Record<number, string>) => {
     setIsGenerating(true);
-    setStep("final"); // Move to final step immediately to show loading state there or keeping clarifying with loading spinner? 
-    // Actually, let's keep it in "clarifying" but show a global loader or just transition state. 
-    // For cleaner UX, let's show a "Creating..." state or just move to FinalStep with isGenerating=true
+    setStep("final");
 
     try {
       const formattedAnswers = Object.entries(finalAnswers).map(([id, answer]) => ({
@@ -110,6 +172,13 @@ const PromptGenerator = () => {
       const data = await response.json();
       setFinalPrompt(data.final_prompt);
       setRetrievedSources(data.retrieved_sources || []);
+
+      // Mark free token as used if not signed in
+      if (!isSignedIn && !hasUsedFreeToken) {
+        localStorage.setItem("prompt_genie_free_usage", "true");
+        setHasUsedFreeToken(true);
+      }
+
     } catch (error) {
       console.error(error);
       toast({
@@ -145,21 +214,26 @@ const PromptGenerator = () => {
 
   const currentQuestion = questions[currentQIndex];
 
+  // Determine if content should be locked (second try, not signed in)
+  const isLocked = !isSignedIn && hasUsedFreeToken && step === "final" && !isGenerating;
+
   return (
-    <section id="generator" className="py-24 min-h-screen">
-      <div className="container mx-auto px-6">
+    <section id="generator" className="py-24 min-h-screen relative overflow-hidden">
+      <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Section header */}
           <div className="text-center mb-12">
-            <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4">
+            <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4 relative z-10">
               {step === "initial" && "Describe Your AI Agent"}
               {step === "clarifying" && "Refine Your Vision"}
-              {step === "final" && "Your Optimized Prompt"}
+              {step === "final" && !isGenerating && "Your Optimized Prompt"}
+              {step === "final" && isGenerating && "Thinking..."}
             </h2>
-            <p className="font-body text-muted-foreground text-lg">
+            <p className="font-body text-muted-foreground text-lg relative z-10">
               {step === "initial" && "Tell us what you want to build, and we'll craft the prompts."}
               {step === "clarifying" && "Help us understand the specifics with a few quick choices."}
-              {step === "final" && "Ready to deploy. Use this prompt in your favorite LLM."}
+              {step === "final" && !isGenerating && "Ready to deploy. Use this prompt in your favorite LLM."}
+              {step === "final" && isGenerating && "We breathe life into your ideas."}
             </p>
           </div>
 
@@ -193,7 +267,9 @@ const PromptGenerator = () => {
                   >
                     {isGenerating ? (
                       <>
-                        <Sparkles className="w-4 h-4 animate-spin mr-2" />
+                        <div className="mr-3">
+                          <BreathingOrb size="sm" />
+                        </div>
                         Analyzing...
                       </>
                     ) : (
@@ -215,7 +291,7 @@ const PromptGenerator = () => {
                   scale: 1.1,
                   filter: "blur(20px)",
                   transition: { duration: 0.4, ease: "easeInOut" }
-                }} // "Thanos snap" feel: fades out, blurs heavily, slightly expands like dust
+                }}
                 className="bg-card rounded-xl border border-border/40 p-8 shadow-sm max-w-2xl mx-auto"
               >
                 <div className="mb-6">
@@ -251,17 +327,15 @@ const PromptGenerator = () => {
               </motion.div>
             )}
 
-            {/* Loading State between Clarifying and Final (if needed) */}
+            {/* Loading State - Breathing Orb Centered */}
             {step === "final" && isGenerating && (
               <motion.div
-                key="generating-loader"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-20"
+                className="flex flex-col items-center justify-center py-20 min-h-[400px]"
               >
-                <Sparkles className="w-12 h-12 text-primary animate-spin mb-4" />
-                <h3 className="text-xl font-display">Crafting your perfect prompt...</h3>
+                <BreathingOrb size="lg" />
               </motion.div>
             )}
 
@@ -272,14 +346,16 @@ const PromptGenerator = () => {
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", bounce: 0.3 }}
-                className="bg-card rounded-2xl shadow-card border border-border/50 overflow-hidden"
+                className="bg-card rounded-2xl shadow-card border border-border/50 overflow-hidden relative"
               >
                 <div className="border-b border-border/50 px-6 py-4 flex items-center justify-between bg-secondary/10">
                   <div className="flex items-center gap-2">
                     <span className="font-display text-sm font-medium text-foreground">System Prompt</span>
-                    <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold tracking-wider uppercase border border-green-500/20">
-                      Optimized
-                    </span>
+                    {!isLocked && (
+                      <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold tracking-wider uppercase border border-green-500/20">
+                        Optimized
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <button
@@ -289,35 +365,58 @@ const PromptGenerator = () => {
                     >
                       <RefreshCcw className="w-4 h-4" />
                     </button>
-                    <button
-                      onClick={handleCopy}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/50 font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-3.5 h-3.5" />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy
-                        </>
-                      )}
-                    </button>
+                    {!isLocked && (
+                      <button
+                        onClick={handleCopy}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/50 font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            Copy
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 <div className="relative">
                   <Textarea
-                    value={finalPrompt}
-                    onChange={(e) => setFinalPrompt(e.target.value)}
-                    className="min-h-[500px] w-full p-6 font-mono text-sm leading-relaxed bg-transparent border-0 focus-visible:ring-0 resize-y"
+                    value={isLocked ? "This content is hidden. Please sign in to view your optimized prompt." : finalPrompt}
+                    onChange={(e) => !isLocked && setFinalPrompt(e.target.value)}
+                    className={`min-h-[500px] w-full p-6 font-mono text-sm leading-relaxed bg-transparent border-0 focus-visible:ring-0 resize-y ${isLocked ? "blur-md select-none pointer-events-none" : ""}`}
                     spellCheck={false}
+                    disabled={isLocked}
                   />
+
+                  {/* Lock Overlay */}
+                  {isLocked && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/20 backdrop-blur-[2px] z-20">
+                      <div className="bg-card border border-border p-8 rounded-2xl shadow-elevated flex flex-col items-center text-center max-w-sm">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                          <Lock className="w-6 h-6 text-primary" />
+                        </div>
+                        <h3 className="font-display text-xl text-foreground mb-2">Unlock Your Prompt</h3>
+                        <p className="font-body text-sm text-muted-foreground mb-6">
+                          You've used your free generation. Sign up to reveal this prompt and create unlimited AI agents.
+                        </p>
+                        <SignInButton mode="modal">
+                          <LiquidButton size="lg" className="w-full">
+                            Sign Up to Reveal
+                          </LiquidButton>
+                        </SignInButton>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {retrievedSources.length > 0 && (
+                {retrievedSources.length > 0 && !isLocked && (
                   <div className="bg-secondary/5 border-t border-border/30 p-4">
                     <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
                       Inspired by Knowledge Base

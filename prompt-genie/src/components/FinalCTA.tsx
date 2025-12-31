@@ -12,11 +12,11 @@ const FinalCTA = () => {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground mb-8 leading-tight">
             Good prompts feel written,{" "}
-            <span className="italic text-muted-foreground">not generated.</span>
+            <span className="italic text-[#D5451B]">not generated.</span>
           </h2>
 
-          <LiquidButton 
-            size="xl" 
+          <LiquidButton
+            size="xl"
             onClick={scrollToGenerator}
             className="group"
           >

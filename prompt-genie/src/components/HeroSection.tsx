@@ -16,7 +16,7 @@ const HeroSection = () => {
             style={{ animationDelay: '0.1s' }}
           >
             Describe what you want to build.{" "}
-            <span className="italic text-[#6A1E55]">We'll handle the prompt.</span>
+            <span className="italic text-[#D5451B]">We'll handle the prompt.</span>
           </h1>
 
           {/* Subheading - calm, confident */}
