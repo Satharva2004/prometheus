@@ -43,14 +43,14 @@ const AIModelsMarquee = () => {
           {aiModels.map((model, index) => (
             <div
               key={`first-${index}`}
-              className="flex items-center px-12 shrink-0"
+              className="flex items-center px-6 md:px-12 shrink-0"
             >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <img
                     src={model.logo}
                     alt={model.name}
-                    className="h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
+                    className="h-10 md:h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
                   />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -63,14 +63,14 @@ const AIModelsMarquee = () => {
           {aiModels.map((model, index) => (
             <div
               key={`second-${index}`}
-              className="flex items-center px-12 shrink-0"
+              className="flex items-center px-6 md:px-12 shrink-0"
             >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <img
                     src={model.logo}
                     alt={model.name}
-                    className="h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
+                    className="h-10 md:h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
                   />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -83,14 +83,14 @@ const AIModelsMarquee = () => {
           {aiModels.map((model, index) => (
             <div
               key={`third-${index}`}
-              className="flex items-center px-12 shrink-0"
+              className="flex items-center px-6 md:px-12 shrink-0"
             >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <img
                     src={model.logo}
                     alt={model.name}
-                    className="h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
+                    className="h-10 md:h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
                   />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -103,14 +103,14 @@ const AIModelsMarquee = () => {
           {aiModels.map((model, index) => (
             <div
               key={`fourth-${index}`}
-              className="flex items-center px-12 shrink-0"
+              className="flex items-center px-6 md:px-12 shrink-0"
             >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <img
                     src={model.logo}
                     alt={model.name}
-                    className="h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
+                    className="h-10 md:h-14 w-auto object-contain transition-opacity duration-300 cursor-help"
                   />
                 </TooltipTrigger>
                 <TooltipContent>
