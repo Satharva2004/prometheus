@@ -111,7 +111,11 @@ A custom-built design system featuring glassmorphism, fluid animations, and a pr
 - **Infinite Marquee**: Seamlessly loops through the logos of supported AI models.
 
 ### Top Reference Models
-We have reverse-engineered patterns from:
+We have reverse-engineered architectural patterns from:
+
+> **Augment Code, Claude Code, Cluely, CodeBuddy, Comet, Cursor, Devin AI, Junie, Kiro, Leap.new, Lovable, Manus, NotionAI, Orchids.app, Perplexity, Poke, Qoder, Replit, Same.dev, Trae, Traycer AI, VSCode Agent, Warp.dev, Windsurf, Xcode, Z.ai Code, Dia & v0.**
+
+*(And other Open Sourced System Prompts, Internal Tools & AI Models)*
 <p align="center">
   <img src="prompt-genie/public/anthropic.svg" height="40" alt="Anthropic" style="margin: 0 10px;" />
   <img src="prompt-genie/public/chatgpt.svg" height="40" alt="OpenAI" style="margin: 0 10px;" />
