@@ -1,16 +1,20 @@
-# <img src="prompt-genie/public/logo_typography.png" height="60" alt="Prometheus" />
-**Architect Intelligent Agents using the System Prompts of Titans.**
+<p align="center">
+  <img src="prompt-genie/public/logo_typography.png" height="120" alt="Prometheus" />
+</p>
 
-![Prometheus Banner](https://raw.githubusercontent.com/Satharva2004/prometheus/main/prompt-genie/public/og-image.png)
+<p align="center">
+  <b>Architect Intelligent Agents using the System Prompts of Titans.</b>
+</p>
 
-## 🚀 Overview
+
+## <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f680.png" alt="🚀" width="30" /> Overview
 **Prometheus** is an open-source, RAG-powered system prompt engineering engine. It allows developers to generate enterprise-grade system instructions for their AI agents by reverse-engineering the architectural patterns ("DNA") of industry giants like **Google Gemini, OpenAI GPT-4, and Anthropic Claude**.
 
 Instead of guessing how to write a good system prompt, Prometheus uses a **Retrieval-Augmented Generation (RAG)** pipeline to fetch the most relevant "elite" prompt structures from a database of 100+ production system prompts and adapts them to your specific use case.
 
 ---
 
-## 🛠️ Tech Stack
+## <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f6e0-fe0f.png" alt="🛠️" width="30" /> Tech Stack
 
 ### Frontend
 <p align="left">
@@ -37,19 +41,19 @@ Instead of guessing how to write a good system prompt, Prometheus uses a **Retri
 
 ---
 
-## 🧠 Validated Architecture & Pipeline
+## <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f9e0.png" alt="🧠" width="30" /> Validated Architecture & Pipeline
 
 Prometheus operation is based on a three-stage "Architectural Synthesis" pipeline:
 
-### 1. Intent Definition & Calibration 🎯
+### 1. Intent Definition & Calibration <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f3af.png" alt="🎯" width="24" />
 The user starts by describing their agent. The system uses **Groq (Llama-3)** to act as a "Requirements Analyst", instantly analyzing the request and generating 3-4 targeted clarifying questions (e.g., about tone, constraints, edge cases) to refine the user's intent.
 
-### 2. RAG Retrieval & Metadata Filtering 🔍
+### 2. RAG Retrieval & Metadata Filtering <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f50d.png" alt="🔍" width="24" />
 Once the intent is refined, the system embeds the user's query using **SentenceTransformers**. It then queries a **Pinecone** vector index containing the "DNA" of 100+ best-in-class system prompts.
 - **Top-k Retrieval**: We fetch the top 10 most structurally relevant system prompts.
 - **Metadata Rich**: Each retrieved prompt contains metadata about its origin (e.g., "Anthropic Claude 3 System Prompt", "Perplexity Search Prompt"), allowing the synthesizer to understand *why* it was retrieved.
 
-### 3. Architectural Synthesis 🧬
+### 3. Architectural Synthesis <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f9ec.png" alt="🧬" width="24" />
 The "Architectural Intelligence" engine receives:
 - The user's goal.
 - Calibrated answers.
@@ -57,9 +61,47 @@ The "Architectural Intelligence" engine receives:
 
 It doesn't just copy; it **synthesizes**. It adapts the *techniques* (e.g., XML tagging from Claude, chain-of-thought enforcement from Gemini) to create a **bespoke, production-ready system prompt** for your specific agent.
 
+### System Architecture Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Client as 💻 React Frontend
+    participant Server as ⚙️ FastAPI Backend
+    participant Embed as 🧮 Embedding Model
+    participant VectorDB as 🌲 Pinecone DB
+    participant LLM as ⚡ Groq (Llama-3)
+
+    Note over User, Client: Phase 1: Intent Calibration
+
+    User->>Client: Inputs vague agent description
+    Client->>Server: POST /analyze-query
+    Server->>LLM: "Analyze intent & generate clarifying questions"
+    LLM-->>Server: JSON: {questions: [...]}
+    Server-->>Client: Returns interactive form
+    
+    User->>Client: Selects specific nuances
+    Client->>Server: POST /generate-final-prompt
+
+    Note over Server, VectorDB: Phase 2: RAG Retrieval
+
+    Server->>Embed: Embed(user_query)
+    Embed-->>Server: Vector (768d)
+    Server->>VectorDB: Query(vector, top_k=10, namespace="promptsdb")
+    VectorDB-->>Server: [Metadata: Claude 3, GPT-4, Perplexity...]
+
+    Note over Server, LLM: Phase 3: Architectural Synthesis
+
+    Server->>Server: Construct Context (Intent + Answers + "Elite DNA")
+    Server->>LLM: "Synthesize novel prompt architecture"
+    LLM-->>Server: Production-Ready System Prompt
+    Server-->>Client: Returns final_prompt
+    Client->>User: Displays "Liquid" Result
+```
+
 ---
 
-## 🎨 Key Features & Components
+## <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f3a8.png" alt="🎨" width="30" /> Key Features & Components
 
 ### "Liquid" UI Design
 A custom-built design system featuring glassmorphism, fluid animations, and a premium "fintech-dark" aesthetic.
@@ -76,11 +118,21 @@ We have reverse-engineered patterns from:
   <img src="prompt-genie/public/gemini.svg" height="40" alt="Google Gemini" style="margin: 0 10px;" />
   <img src="prompt-genie/public/claude.svg" height="40" alt="Claude" style="margin: 0 10px;" />
   <img src="prompt-genie/public/deepseek.svg" height="40" alt="DeepSeek" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/cursor.svg" height="40" alt="Cursor" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/devin.svg" height="40" alt="Devin" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/github-copilot.svg" height="40" alt="GitHub Copilot" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/grok-(xai).svg" height="40" alt="Grok" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/jules.svg" height="40" alt="Jules" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/lovable.svg" height="40" alt="Lovable" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/mistral-ai.svg" height="40" alt="Mistral" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/perplexity.svg" height="40" alt="Perplexity" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/replit.svg" height="40" alt="Replit" style="margin: 0 10px;" />
+  <img src="prompt-genie/public/windsurf.svg" height="40" alt="Windsurf" style="margin: 0 10px;" />
 </p>
 
 ---
 
-## 📦 usage
+## <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f4e6.png" alt="📦" width="30" /> usage
 
 ### Prerequisites
 - Node.js & npm
@@ -105,9 +157,9 @@ uvicorn main:app --reload
 
 ---
 
-## 📜 License
+## <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f4dc.png" alt="📜" width="30" /> License
 This project is open-source and available under the MIT License.
 
-## 🤝 Connect
+## <img src="https://cdnjs.cloudflare.com/ajax/libs/emoji-datasource-apple/14.0.0/img/apple/64/1f91d.png" alt="🤝" width="30" /> Connect
 - **LinkedIn**: [Atharva Sawant](https://www.linkedin.com/in/atharvasawant0804/)
 - **GitHub**: [Satharva2004](https://github.com/Satharva2004)
