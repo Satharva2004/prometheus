@@ -105,7 +105,7 @@ const PromptGenerator = () => {
     setIsGenerating(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/ai/analyze-query", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/analyze-query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: input }),
@@ -158,7 +158,7 @@ const PromptGenerator = () => {
         answer,
       }));
 
-      const response = await fetch("http://localhost:8000/api/ai/generate-final-prompt", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/generate-final-prompt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
