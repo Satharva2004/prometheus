@@ -90,6 +90,30 @@ const PromptGenerator = () => {
     if (used) {
       setHasUsedFreeToken(true);
     }
+
+    // Restore pending state if exists (e.g. after reload/signup)
+    const pending = localStorage.getItem("prometheus_pending_generation");
+    if (pending) {
+      try {
+        const parsed = JSON.parse(pending);
+        setInput(parsed.input || "");
+        setFinalPrompt(parsed.finalPrompt || "");
+        setRetrievedSources(parsed.retrievedSources || []);
+        setQuestions(parsed.questions || []);
+        setAnswers(parsed.answers || {});
+        // If we have a final prompt, go to final step
+        if (parsed.finalPrompt) {
+          setStep("final");
+        } else if (parsed.questions?.length > 0) {
+          // If we had questions but no final prompt, maybe restore clarifying?
+          // For now, let's focus on restoring the final result which is the main pain point
+          setStep("clarifying");
+          setCurrentQIndex(Object.keys(parsed.answers || {}).length);
+        }
+      } catch (e) {
+        console.error("Failed to parse pending generation", e);
+      }
+    }
   }, []);
 
   const handleAnalyze = async () => {
@@ -173,6 +197,16 @@ const PromptGenerator = () => {
       setFinalPrompt(data.final_prompt);
       setRetrievedSources(data.retrieved_sources || []);
 
+      // Save state for recovery after signup/reload
+      localStorage.setItem("prometheus_pending_generation", JSON.stringify({
+        input,
+        finalPrompt: data.final_prompt,
+        retrievedSources: data.retrieved_sources || [],
+        questions,
+        answers: finalAnswers,
+        timestamp: Date.now()
+      }));
+
       // Mark free token as used if not signed in
       if (!isSignedIn && !hasUsedFreeToken) {
         localStorage.setItem("prometheus_free_usage", "true");
@@ -210,6 +244,7 @@ const PromptGenerator = () => {
     setFinalPrompt("");
     setRetrievedSources([]);
     setStep("initial");
+    localStorage.removeItem("prometheus_pending_generation");
   };
 
   const currentQuestion = questions[currentQIndex];
