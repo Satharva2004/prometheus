@@ -15,21 +15,21 @@ const HeroSection = () => {
             className="font-display text-4xl md:text-5xl lg:text-6xl text-foreground leading-[1.1] mb-8 animate-fade-in-up"
             style={{ animationDelay: '0.1s' }}
           >
-            Describe what you want to build.{" "}
-            <span className="italic text-[#D5451B]">We'll handle the prompt.</span>
+            Creating system prompt for your AI agent <br className="hidden ml-2" />
+            <span className="italic text-[#D5451B]">Made Easy.</span>
           </h1>
 
-          {/* Subheading - calm, confident */}
+          {/* Subheading */}
           <p
             className="font-body text-md md:text-lg text-muted-foreground max-w-xl mx-auto mb-12 leading-relaxed animate-fade-in-up"
             style={{ animationDelay: '0.2s' }}
           >
-            From AI agents to complex workflows — generate prompts crafted for every major AI model.
+            We've reverse-engineered the system prompts behind Google, OpenAI, and Anthropic. Our RAG engine retrieves these elite architectural patterns to engineer the perfect instructions for <i>your</i> agent.
           </p>
 
-          {/* Primary CTA - Liquid glass button */}
+          {/* Primary CTA */}
           <div
-            className="mb-6 animate-fade-in-up"
+            className="mb-4 animate-fade-in-up"
             style={{ animationDelay: '0.3s' }}
           >
             <LiquidButton
@@ -37,17 +37,17 @@ const HeroSection = () => {
               onClick={scrollToGenerator}
               className="group"
             >
-              Get Started for Free
+              Start Engineering — Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
             </LiquidButton>
           </div>
 
           {/* Secondary microcopy */}
           <p
-            className="font-body text-sm text-muted-foreground/70 animate-fade-in-up"
+            className="font-body text-sm text-muted-foreground/70 animate-fade-in-up flex items-center justify-center gap-2"
             style={{ animationDelay: '0.4s' }}
           >
-            No login. No friction. Just prompts.
+            No sign up required. Open Source.
           </p>
         </div>
       </div>

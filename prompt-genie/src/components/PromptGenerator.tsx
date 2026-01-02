@@ -86,7 +86,7 @@ const PromptGenerator = () => {
 
   useEffect(() => {
     // Check if user has already used their free generation
-    const used = localStorage.getItem("prompt_genie_free_usage");
+    const used = localStorage.getItem("prometheus_free_usage");
     if (used) {
       setHasUsedFreeToken(true);
     }
@@ -175,7 +175,7 @@ const PromptGenerator = () => {
 
       // Mark free token as used if not signed in
       if (!isSignedIn && !hasUsedFreeToken) {
-        localStorage.setItem("prompt_genie_free_usage", "true");
+        localStorage.setItem("prometheus_free_usage", "true");
         setHasUsedFreeToken(true);
       }
 
@@ -224,16 +224,16 @@ const PromptGenerator = () => {
           {/* Section header */}
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl text-foreground mb-4 relative z-10">
-              {step === "initial" && "Describe Your AI Agent"}
-              {step === "clarifying" && "Refine Your Vision"}
-              {step === "final" && !isGenerating && "Your Optimized Prompt"}
-              {step === "final" && isGenerating && "Thinking..."}
+              {step === "initial" && "Define Agent Behavior"}
+              {step === "clarifying" && "Calibrate Specifics"}
+              {step === "final" && !isGenerating && "Operational Context Ready"}
+              {step === "final" && isGenerating && "Synthesizing Architecture..."}
             </h2>
             <p className="font-body text-muted-foreground text-lg relative z-10">
-              {step === "initial" && "Tell us what you want to build, and we'll craft the prompts."}
-              {step === "clarifying" && "Help us understand the specifics with a few quick choices."}
-              {step === "final" && !isGenerating && "Ready to deploy. Use this prompt in your favorite LLM."}
-              {step === "final" && isGenerating && "We breathe life into your ideas."}
+              {step === "initial" && "Articulate the core purpose and we'll help you refine the logic."}
+              {step === "clarifying" && "Select the best fit to handle edge cases and nuances."}
+              {step === "final" && !isGenerating && "Deploy this system prompt to your LLM configuration."}
+              {step === "final" && isGenerating && "Aligning constraints and optimizing token structure."}
             </p>
           </div>
 
@@ -249,7 +249,7 @@ const PromptGenerator = () => {
                 className="bg-card rounded-2xl shadow-card border border-border/50 p-6 md:p-8"
               >
                 <Textarea
-                  placeholder="Describe the AI agent, workflow, or system you want to build…"
+                  placeholder="Describe the Agent's Role, Context, and any specific constraints..."
                   className="min-h-[140px] font-body text-base resize-none border-0 bg-secondary/40 focus-visible:ring-1 focus-visible:ring-border mb-4 placeholder:text-muted-foreground/50"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -273,7 +273,7 @@ const PromptGenerator = () => {
                         Analyzing...
                       </>
                     ) : (
-                      "Analyze & Refine"
+                      "Initialize Analysis"
                     )}
                   </LiquidButton>
                 </div>

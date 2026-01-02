@@ -1,8 +1,8 @@
 const values = [
-  "Context-aware system prompts",
-  "Optimized per AI model",
-  "Built for agents, workflows, tools",
-  "Designed for builders, not hype",
+  "Reverse-Engineered Architectures",
+  "RAG over Top-Tier System Prompts",
+  "Model-Agnostic Optimization",
+  "Production-Grade Reliability",
 ];
 
 const ValueProposition = () => {
@@ -16,7 +16,7 @@ const ValueProposition = () => {
 
           <ul className="space-y-4">
             {values.map((value, index) => (
-              <li 
+              <li
                 key={index}
                 className="font-body text-lg text-muted-foreground animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.08}s` }}

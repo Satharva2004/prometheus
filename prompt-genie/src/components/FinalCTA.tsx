@@ -11,8 +11,8 @@ const FinalCTA = () => {
       <div className="container mx-auto px-6">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-foreground mb-8 leading-tight">
-            Good prompts feel written,{" "}
-            <span className="italic text-[#D5451B]">not generated.</span>
+            Don't settle for average inference.{" "}
+            <span className="italic text-[#D5451B]">Engineer excellence.</span>
           </h2>
 
           <LiquidButton

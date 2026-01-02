@@ -1,4 +1,4 @@
-# Prompt Genie
+# Prometheus
 
 ## Project info
 
@@ -17,7 +17,7 @@ This is a React project built with Vite, TypeScript, and Tailwind CSS.
 git clone <YOUR_GIT_URL>
 
 # Step 2: Navigate to the project directory
-cd prompt-genie
+cd prometheus
 
 # Step 3: Install dependencies
 npm install

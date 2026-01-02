@@ -11,7 +11,7 @@ const Header = () => {
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="font-display text-xl text-foreground tracking-tight">
-            PromptForge
+            Prometheus
           </span>
         </div>
 

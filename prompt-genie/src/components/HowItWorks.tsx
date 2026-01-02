@@ -1,18 +1,18 @@
 const steps = [
   {
     number: "01",
-    title: "Describe your idea",
-    description: "Tell us about the AI agent, workflow, or system you want to create.",
+    title: "Define Your Intent",
+    description: "Describe the role, constraints, and desired logical flow of your AI agent or workflow.",
   },
   {
     number: "02",
-    title: "We translate it for each AI",
-    description: "Our system generates optimized prompts tailored to each platform's strengths.",
+    title: "Interactive Calibration",
+    description: "Our system analyzes your request and asks targeted clarifying questions to cover edge cases and ambiguity.",
   },
   {
     number: "03",
-    title: "Copy & build",
-    description: "Take your prompts and start building with confidence.",
+    title: "Inject Elite DNA",
+    description: "We retrieve structural secrets from the system prompts of Google, OpenAI, and Anthropic, adapting their proven logic to your specific use case.",
   },
 ];
 
@@ -27,7 +27,7 @@ const HowItWorks = () => {
 
           <div className="space-y-12">
             {steps.map((step, index) => (
-              <div 
+              <div
                 key={step.number}
                 className="flex gap-6 items-start animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
