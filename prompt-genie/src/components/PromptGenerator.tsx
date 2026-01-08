@@ -80,17 +80,11 @@ const PromptGenerator = () => {
   const [copied, setCopied] = useState(false);
 
   // Usage Limit State
-  const [hasUsedFreeToken, setHasUsedFreeToken] = useState(false);
+
 
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user has already used their free generation
-    const used = localStorage.getItem("prometheus_free_usage");
-    if (used) {
-      setHasUsedFreeToken(true);
-    }
-
     // Restore pending state if exists (e.g. after reload/signup)
     const pending = localStorage.getItem("prometheus_pending_generation");
     if (pending) {
@@ -207,12 +201,6 @@ const PromptGenerator = () => {
         timestamp: Date.now()
       }));
 
-      // Mark free token as used if not signed in
-      if (!isSignedIn && !hasUsedFreeToken) {
-        localStorage.setItem("prometheus_free_usage", "true");
-        setHasUsedFreeToken(true);
-      }
-
     } catch (error) {
       console.error(error);
       toast({
@@ -248,9 +236,6 @@ const PromptGenerator = () => {
   };
 
   const currentQuestion = questions[currentQIndex];
-
-  // Determine if content should be locked (second try, not signed in)
-  const isLocked = !isSignedIn && hasUsedFreeToken && step === "final" && !isGenerating;
 
   return (
     <section id="generator" className="py-24 min-h-screen relative overflow-hidden">
@@ -386,11 +371,9 @@ const PromptGenerator = () => {
                 <div className="border-b border-border/50 px-6 py-4 flex items-center justify-between bg-secondary/10">
                   <div className="flex items-center gap-2">
                     <span className="font-display text-sm font-medium text-foreground">System Prompt</span>
-                    {!isLocked && (
-                      <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold tracking-wider uppercase border border-green-500/20">
-                        Optimized
-                      </span>
-                    )}
+                    <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold tracking-wider uppercase border border-green-500/20">
+                      Optimized
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
@@ -400,58 +383,35 @@ const PromptGenerator = () => {
                     >
                       <RefreshCcw className="w-4 h-4" />
                     </button>
-                    {!isLocked && (
-                      <button
-                        onClick={handleCopy}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/50 font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" />
-                            Copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            Copy
-                          </>
-                        )}
-                      </button>
-                    )}
+                    <button
+                      onClick={handleCopy}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/60 border border-border/50 font-body text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
 
                 <div className="relative">
                   <Textarea
-                    value={isLocked ? "This content is hidden. Please sign in to view your optimized prompt." : finalPrompt}
-                    onChange={(e) => !isLocked && setFinalPrompt(e.target.value)}
-                    className={`min-h-[500px] w-full p-6 font-mono text-sm leading-relaxed bg-transparent border-0 focus-visible:ring-0 resize-y ${isLocked ? "blur-md select-none pointer-events-none" : ""}`}
+                    value={finalPrompt}
+                    onChange={(e) => setFinalPrompt(e.target.value)}
+                    className="min-h-[500px] w-full p-6 font-mono text-sm leading-relaxed bg-transparent border-0 focus-visible:ring-0 resize-y"
                     spellCheck={false}
-                    disabled={isLocked}
                   />
-
-                  {/* Lock Overlay */}
-                  {isLocked && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/20 backdrop-blur-[2px] z-20">
-                      <div className="bg-card border border-border p-8 rounded-2xl shadow-elevated flex flex-col items-center text-center max-w-sm">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                          <Lock className="w-6 h-6 text-primary" />
-                        </div>
-                        <h3 className="font-display text-xl text-foreground mb-2">Unlock Your Prompt</h3>
-                        <p className="font-body text-sm text-muted-foreground mb-6">
-                          You've used your free generation. Sign up to reveal this prompt and create unlimited AI agents.
-                        </p>
-                        <SignInButton mode="modal">
-                          <LiquidButton size="lg" className="w-full">
-                            Sign Up to Reveal
-                          </LiquidButton>
-                        </SignInButton>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {retrievedSources.length > 0 && !isLocked && (
+                {retrievedSources.length > 0 && (
                   <div className="bg-secondary/5 border-t border-border/30 p-4">
                     <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
                       Inspired by Knowledge Base
@@ -470,7 +430,7 @@ const PromptGenerator = () => {
           </AnimatePresence>
         </div>
       </div>
-    </section>
+    </section >
   );
 };
 
