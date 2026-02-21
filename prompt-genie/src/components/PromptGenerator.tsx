@@ -73,6 +73,8 @@ const PromptGenerator = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [currentQIndex, setCurrentQIndex] = useState(0);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customAnswer, setCustomAnswer] = useState("");
 
   // Result State
   const [finalPrompt, setFinalPrompt] = useState("");
@@ -154,6 +156,10 @@ const PromptGenerator = () => {
 
   const handleOptionSelect = (qId: number, option: string) => {
     setAnswers(prev => ({ ...prev, [qId]: option }));
+
+    // Reset custom input state for next question
+    setShowCustomInput(false);
+    setCustomAnswer("");
 
     // Auto advance after a brief delay for animation
     setTimeout(() => {
@@ -333,6 +339,52 @@ const PromptGenerator = () => {
                       {option}
                     </button>
                   ))}
+
+                  {/* Other Option */}
+                  {!showCustomInput ? (
+                    <button
+                      onClick={() => setShowCustomInput(true)}
+                      className="px-5 py-4 rounded-xl text-base font-body text-left transition-all duration-300 border bg-secondary/30 border-dashed border-muted-foreground/30 text-muted-foreground hover:bg-primary/5 hover:border-primary/30 hover:text-foreground hover:shadow-lg active:scale-[0.98]"
+                    >
+                      Other (Custom Answer)
+                    </button>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="flex flex-col gap-3 mt-2"
+                    >
+                      <Textarea
+                        placeholder="Type your custom answer here..."
+                        value={customAnswer}
+                        onChange={(e) => setCustomAnswer(e.target.value)}
+                        className="bg-secondary/40 border-border/50 focus-visible:ring-primary/30 min-h-[100px]"
+                        autoFocus
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => {
+                            setShowCustomInput(false);
+                            setCustomAnswer("");
+                          }}
+                          className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (customAnswer.trim()) {
+                              handleOptionSelect(currentQuestion.id, customAnswer);
+                            }
+                          }}
+                          disabled={!customAnswer.trim()}
+                          className="px-6 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all disabled:opacity-50"
+                        >
+                          Submit Answer
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
 
                 {/* Progress Bar */}
