@@ -628,7 +628,7 @@ async def generate_final_prompt(request: GenerateDetailedPromptRequest):
                     "content": user_content,
                 }
             ],
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             temperature=0.25,
             max_tokens=4096,
         )
