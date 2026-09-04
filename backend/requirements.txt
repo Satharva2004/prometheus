@@ -5,3 +5,5 @@ python-dotenv
 sentence-transformers
 keybert
 groq
+pytest
+httpx

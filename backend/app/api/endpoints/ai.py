@@ -5,8 +5,6 @@ import os
 import json
 import itertools
 from groq import Groq
-from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
 
 router = APIRouter()
 
@@ -42,6 +40,7 @@ def get_embedding_model():
     global embedding_model
     if embedding_model is None:
         print("Loading SentenceTransformer model...")
+        from sentence_transformers import SentenceTransformer
         embedding_model = SentenceTransformer('all-mpnet-base-v2')
     return embedding_model
 
@@ -52,6 +51,7 @@ def get_pinecone_index():
              # Should ideally handle this gracefully or fail start
              print("Warning: PINECONE_API_KEY not set.")
              return None
+        from pinecone import Pinecone
         pc = Pinecone(api_key=PINECONE_API_KEY)
         pinecone_index = pc.Index(PINECONE_INDEX_NAME)
     return pinecone_index
@@ -253,7 +253,7 @@ async def analyze_query(request: QueryRequest):
                     "content": request.query,
                 }
             ],
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             temperature=0.3,
             max_tokens=1024,
             top_p=1,
