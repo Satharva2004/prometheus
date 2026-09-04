@@ -189,7 +189,7 @@ def call_grok(system_prompt: str, request: SAPRequest) -> str:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": content},
                 ],
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-120b",
                 temperature=0.3,
                 max_tokens=1024,
             )
@@ -292,7 +292,7 @@ async def welcome(request: SAPRequest):
                         {"role": "system", "content": WELCOME_SYSTEM_PROMPT},
                         {"role": "user", "content": user_prompt},
                     ],
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     temperature=0.7,
                     max_tokens=1024,
                 )
